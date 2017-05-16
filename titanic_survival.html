@@ -127,10 +127,17 @@ $(document).ready(function () {
 <ul>
 <li><a href="#titanic-survival---kaggle">Titanic Survival - Kaggle</a><ul>
 <li><a href="#introduction">Introduction</a><ul>
-<li><a href="#data-dictionary-train.csv">Data Dictionary (train.csv)</a></li>
+<li><a href="#load-data">Load Data</a></li>
+<li><a href="#data-dictionary">Data Dictionary</a></li>
 </ul></li>
-<li><a href="#synopsis">Synopsis</a></li>
+<li><a href="#first-level-of-investigation">First level of investigation</a><ul>
+<li><a href="#distribution-based-on-sex">Distribution Based on Sex</a></li>
+<li><a href="#diving-into-age">Diving into Age</a></li>
+<li><a href="#diving-into-fare">Diving into Fare</a></li>
 </ul></li>
+<li><a href="#submission">Submission</a></li>
+</ul></li>
+<li><a href="#first-attempt">first attempt</a></li>
 </ul>
 </div>
 
@@ -139,13 +146,184 @@ $(document).ready(function () {
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>Provided initial training set of data (train.csv) containing passenger roster with some key details.</p>
-<div id="data-dictionary-train.csv" class="section level3">
-<h3>Data Dictionary (train.csv)</h3>
+<div id="load-data" class="section level3">
+<h3>Load Data</h3>
+<pre class="r"><code>train &lt;- read.csv('../input/train.csv', stringsAsFactors = F)
+test &lt;- read.csv('../input/test.csv', stringsAsFactors = F)
+
+str(train)</code></pre>
+<pre><code>## 'data.frame':    891 obs. of  12 variables:
+##  $ PassengerId: int  1 2 3 4 5 6 7 8 9 10 ...
+##  $ Survived   : int  0 1 1 1 0 0 0 0 1 1 ...
+##  $ Pclass     : int  3 1 3 1 3 3 1 3 3 2 ...
+##  $ Name       : chr  &quot;Braund, Mr. Owen Harris&quot; &quot;Cumings, Mrs. John Bradley (Florence Briggs Thayer)&quot; &quot;Heikkinen, Miss. Laina&quot; &quot;Futrelle, Mrs. Jacques Heath (Lily May Peel)&quot; ...
+##  $ Sex        : chr  &quot;male&quot; &quot;female&quot; &quot;female&quot; &quot;female&quot; ...
+##  $ Age        : num  22 38 26 35 35 NA 54 2 27 14 ...
+##  $ SibSp      : int  1 1 0 1 0 0 0 3 0 1 ...
+##  $ Parch      : int  0 0 0 0 0 0 0 1 2 0 ...
+##  $ Ticket     : chr  &quot;A/5 21171&quot; &quot;PC 17599&quot; &quot;STON/O2. 3101282&quot; &quot;113803&quot; ...
+##  $ Fare       : num  7.25 71.28 7.92 53.1 8.05 ...
+##  $ Cabin      : chr  &quot;&quot; &quot;C85&quot; &quot;&quot; &quot;C123&quot; ...
+##  $ Embarked   : chr  &quot;S&quot; &quot;C&quot; &quot;S&quot; &quot;S&quot; ...</code></pre>
+</div>
+<div id="data-dictionary" class="section level3">
+<h3>Data Dictionary</h3>
+<pre class="r"><code>head(train,1)</code></pre>
+<pre><code>##   PassengerId Survived Pclass                    Name  Sex Age SibSp Parch    Ticket Fare Cabin Embarked
+## 1           1        0      3 Braund, Mr. Owen Harris male  22     1     0 A/5 21171 7.25              S</code></pre>
+<ul>
+<li>PassengerId</li>
+<li>Survived</li>
+<li>Pclass</li>
+<li>Name</li>
+<li>Sex</li>
+<li>Age</li>
+<li>SibSp</li>
+<li>Parch</li>
+<li>Ticket</li>
+<li>Fare</li>
+<li>Cabin</li>
+<li>Embarked</li>
+</ul>
 </div>
 </div>
-<div id="synopsis" class="section level2">
-<h2>Synopsis</h2>
+<div id="first-level-of-investigation" class="section level2">
+<h2>First level of investigation</h2>
+<div id="distribution-based-on-sex" class="section level3">
+<h3>Distribution Based on Sex</h3>
+<pre class="r"><code>table(train$Sex)</code></pre>
+<pre><code>## 
+## female   male 
+##    314    577</code></pre>
+<pre class="r"><code>summary(train$Sex)</code></pre>
+<pre><code>##    Length     Class      Mode 
+##       891 character character</code></pre>
+<pre class="r"><code>prop.table(table(train$Sex))</code></pre>
+<pre><code>## 
+##   female     male 
+## 0.352413 0.647587</code></pre>
+<pre class="r"><code>prop.table(table(train$Survived))</code></pre>
+<pre><code>## 
+##         0         1 
+## 0.6161616 0.3838384</code></pre>
+<pre class="r"><code>train$SurvivedBoolean &lt;- as.logical(train$Survived)
+train$SurvivedLabel[train$SurvivedBoolean == TRUE] &lt;- 'Survived'
+train$SurvivedLabel[train$SurvivedBoolean == FALSE] &lt;- 'Died'
+
+prop.table(table(train$Sex, train$SurvivedLabel))</code></pre>
+<pre><code>##         
+##                Died   Survived
+##   female 0.09090909 0.26150393
+##   male   0.52525253 0.12233446</code></pre>
+<pre class="r"><code>prop.table(table(train$Sex, train$SurvivedLabel),1)</code></pre>
+<pre><code>##         
+##               Died  Survived
+##   female 0.2579618 0.7420382
+##   male   0.8110919 0.1889081</code></pre>
 </div>
+<div id="diving-into-age" class="section level3">
+<h3>Diving into Age</h3>
+<pre class="r"><code>summary(train$Age)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##    0.42   20.12   28.00   29.70   38.00   80.00     177</code></pre>
+<pre class="r"><code>train$Child &lt;- FALSE
+train$Child[train$Age &lt; 18] &lt;- TRUE
+
+table(train$Child)</code></pre>
+<pre><code>## 
+## FALSE  TRUE 
+##   778   113</code></pre>
+<pre class="r"><code>table(train$Child, train$Survived)</code></pre>
+<pre><code>##        
+##           0   1
+##   FALSE 497 281
+##   TRUE   52  61</code></pre>
+<pre class="r"><code>aggregate(Survived ~ Child + Sex, data=train, FUN=sum)</code></pre>
+<pre><code>##   Child    Sex Survived
+## 1 FALSE female      195
+## 2  TRUE female       38
+## 3 FALSE   male       86
+## 4  TRUE   male       23</code></pre>
+<pre class="r"><code>aggregate(Survived ~ Child + Sex, data=train, FUN=length)</code></pre>
+<pre><code>##   Child    Sex Survived
+## 1 FALSE female      259
+## 2  TRUE female       55
+## 3 FALSE   male      519
+## 4  TRUE   male       58</code></pre>
+<pre class="r"><code>aggregate(Survived ~ Child + Sex, data=train, FUN=function(x) {sum(x)/length(x)})</code></pre>
+<pre><code>##   Child    Sex  Survived
+## 1 FALSE female 0.7528958
+## 2  TRUE female 0.6909091
+## 3 FALSE   male 0.1657033
+## 4  TRUE   male 0.3965517</code></pre>
+</div>
+<div id="diving-into-fare" class="section level3">
+<h3>Diving into Fare</h3>
+<pre class="r"><code>train$Fare2 &lt;- '30+'
+train$Fare2[train$Fare &lt; 30 &amp; train$Fare &gt;= 20] &lt;- '20-30'
+train$Fare2[train$Fare &lt; 20 &amp; train$Fare &gt;= 10] &lt;- '10-20'
+train$Fare2[train$Fare &lt; 10] &lt;- '&lt;10'
+
+aggregate(Survived ~ Fare2 + Pclass + Sex, data=train, FUN=function(x) {sum(x)/length(x)})</code></pre>
+<pre><code>##    Fare2 Pclass    Sex  Survived
+## 1  20-30      1 female 0.8333333
+## 2    30+      1 female 0.9772727
+## 3  10-20      2 female 0.9142857
+## 4  20-30      2 female 0.9000000
+## 5    30+      2 female 1.0000000
+## 6    &lt;10      3 female 0.5937500
+## 7  10-20      3 female 0.5813953
+## 8  20-30      3 female 0.3333333
+## 9    30+      3 female 0.1250000
+## 10   &lt;10      1   male 0.0000000
+## 11 20-30      1   male 0.4000000
+## 12   30+      1   male 0.3837209
+## 13   &lt;10      2   male 0.0000000
+## 14 10-20      2   male 0.1587302
+## 15 20-30      2   male 0.1600000
+## 16   30+      2   male 0.2142857
+## 17   &lt;10      3   male 0.1115385
+## 18 10-20      3   male 0.2368421
+## 19 20-30      3   male 0.1250000
+## 20   30+      3   male 0.2400000</code></pre>
+</div>
+</div>
+<div id="submission" class="section level2">
+<h2>Submission</h2>
+</div>
+</div>
+<div id="first-attempt" class="section level1">
+<h1>first attempt</h1>
+<pre class="r"><code>test$Survived &lt;- rep(0, 418)
+test$Survived &lt;- 0
+test$Survived[test$Sex == 'female'] &lt;- 1
+test$Survived[test$Sex == 'female' &amp; test$Pclass == 3 &amp; test$Fare &gt;= 20] &lt;- 0
+
+head(test,10)</code></pre>
+<pre><code>##    PassengerId Pclass                                         Name    Sex  Age SibSp Parch    Ticket    Fare Cabin
+## 1          892      3                             Kelly, Mr. James   male 34.5     0     0    330911  7.8292      
+## 2          893      3             Wilkes, Mrs. James (Ellen Needs) female 47.0     1     0    363272  7.0000      
+## 3          894      2                    Myles, Mr. Thomas Francis   male 62.0     0     0    240276  9.6875      
+## 4          895      3                             Wirz, Mr. Albert   male 27.0     0     0    315154  8.6625      
+## 5          896      3 Hirvonen, Mrs. Alexander (Helga E Lindqvist) female 22.0     1     1   3101298 12.2875      
+## 6          897      3                   Svensson, Mr. Johan Cervin   male 14.0     0     0      7538  9.2250      
+## 7          898      3                         Connolly, Miss. Kate female 30.0     0     0    330972  7.6292      
+## 8          899      2                 Caldwell, Mr. Albert Francis   male 26.0     1     1    248738 29.0000      
+## 9          900      3    Abrahim, Mrs. Joseph (Sophie Halaut Easu) female 18.0     0     0      2657  7.2292      
+## 10         901      3                      Davies, Mr. John Samuel   male 21.0     2     0 A/4 48871 24.1500      
+##    Embarked Survived
+## 1         Q        0
+## 2         S        1
+## 3         Q        0
+## 4         S        0
+## 5         S        1
+## 6         S        0
+## 7         Q        1
+## 8         S        0
+## 9         C        1
+## 10        S        0</code></pre>
+<pre class="r"><code>submit &lt;- data.frame(PassengerId = test$PassengerId, Survived = test$Survived)
+write.csv(submit, file = &quot;theyallperish.csv&quot;, row.names=FALSE)</code></pre>
 </div>
 
 

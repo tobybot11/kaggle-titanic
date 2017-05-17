@@ -237,8 +237,46 @@ aggregate(Survived ~ Fare2 + Pclass + Sex, data=train, FUN=function(x) {sum(x)/l
 ## 19 20-30      3   male 0.1250000
 ## 20   30+      3   male 0.2400000
 ```
+Determined something meaningful here and added it to the submission.
+Women in class 3 who paid $20 or more for a fare didn't fair well (pun intended).
 
 
+### Using Decision Trees
+
+
+```r
+library(rpart)
+fit <- rpart(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked,
+               data=train,
+               method="class")
+
+plot(fit)
+text(fit)
+```
+
+![](titanic_survival_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
+```r
+library(rattle)
+```
+
+```
+## Rattle: A free graphical interface for data mining with R.
+## Version 4.1.0 Copyright (c) 2006-2015 Togaware Pty Ltd.
+## Type 'rattle()' to shake, rattle, and roll your data.
+```
+
+```r
+library(rpart.plot)
+library(RColorBrewer)
+fancyRpartPlot(fit)
+```
+
+![](titanic_survival_files/figure-html/unnamed-chunk-6-2.png)<!-- -->
+
+```r
+Prediction <- predict(fit, test, type = "class")
+```
 
 ## Submission
 
@@ -283,5 +321,6 @@ head(test,10)
 
 ```r
 submit <- data.frame(PassengerId = test$PassengerId, Survived = test$Survived)
+submit <- data.frame(PassengerId = test$PassengerId, Survived = Prediction)
 write.csv(submit, file = "theyallperish.csv", row.names=FALSE)
 ```
